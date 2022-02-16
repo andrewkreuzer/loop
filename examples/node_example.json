@@ -1,9 +1,0 @@
-[
-    {
-        "name": "node_1",
-        "location": "west",
-        "url": "http://node_1:8080",
-        "key": "asdfghjkl;",
-        "alive": true
-    }
-]
