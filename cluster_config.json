@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    {
+      "candidateID": "node_1",
+      "endpoint": "node_1:8080",
+      "url": "http://localhost:8080"
+    },
+    {
+      "candidateID": "node_2",
+      "endpoint": "node_2:8080",
+      "url": "http://localhost:8081"
+    },
+    {
+      "candidateID": "node_3",
+      "endpoint": "node_3:8080",
+      "url": "http://localhost:8082"
+    },
+    {
+      "candidateID": "node_4",
+      "endpoint": "node_4:8080",
+      "url": "http://localhost:8083"
+    },
+    {
+      "candidateID": "node_5",
+      "endpoint": "node_5:8080",
+      "url": "http://localhost:8084"
+    }
+  ]
+}

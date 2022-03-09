@@ -2,36 +2,32 @@ services:
   node_1:
     hostname: node_1
     build: .
+    ports:
+      - 8080:80
 
   node_2:
     hostname: node_2
     build: .
-    depends_on:
-      - node_1
+    ports:
+      - 8081:80
 
   node_3:
     hostname: node_3
     build: .
-    depends_on:
-      - node_1
+    ports:
+      - 8082:80
 
   node_4:
     hostname: node_4
     build: .
-    depends_on:
-      - node_1
+    ports:
+      - 8083:80
 
   node_5:
     hostname: node_5
     build: .
-    depends_on:
-      - node_1
-
-  node_6:
-    hostname: node_6
-    build: .
-    depends_on:
-      - node_1
+    ports:
+      - 8084:80
 
 networks:
   default:
