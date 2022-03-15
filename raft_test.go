@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNewRaft(t *testing.T) {
 	nodes := []NodeInfo{

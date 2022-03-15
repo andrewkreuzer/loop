@@ -196,7 +196,9 @@ func (server *Server) sendAppendEntries() {
 		appendEntriesReply := new(AppendEntriesReply)
 		err := conn.Call("Raft.AppendEntries", args, appendEntriesReply)
 		if err != nil {
-			log.Println("Error calling AppendEntries on: "+client.CandidateID+":", err)
+			log.Println("Error calling AppendEntries on:", client.CandidateID, err)
+			// TODO: handle closed connections and our list of nodes
+			continue
 		}
 
 		if appendEntriesReply.Term > server.raft.CurrentTerm {
