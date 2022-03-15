@@ -21,11 +21,12 @@ const (
 
 // Server in raft cluster
 type Server struct {
-	mu          sync.Mutex
-	candidateID string
-	state       int
-	raft        *Raft
-	config      *Config
+	mu                sync.Mutex
+	candidateID       string
+	state             int
+	raft              *Raft
+	config            *Config
+	clientConnections map[string]*rpc.Client
 
 	timer      *time.Timer
 	maxTimeout int
@@ -45,10 +46,11 @@ func getServer() *Server {
 				log.Fatal("No hostname")
 			}
 			server = &Server{
-				candidateID: hostname,
-				state:       follower,
-				maxTimeout:  10,
-				minTimeout:  2,
+				candidateID:       hostname,
+				state:             follower,
+				maxTimeout:        10,
+				minTimeout:        2,
+				clientConnections: map[string]*rpc.Client{},
 			}
 		}
 	}
@@ -130,6 +132,7 @@ func (server *Server) runAsCandidate() {
 	log.Println("Running as candidate on term:", server.raft.CurrentTerm)
 
 	server.raft.updateTerm(server.raft.CurrentTerm + 1)
+	server.connectClients()
 	server.sendRequestVote()
 	time.Sleep(1 * time.Second)
 }
@@ -189,13 +192,9 @@ func (server *Server) sendAppendEntries() {
 			LeaderCommit: server.raft.CommitedIndex,
 		}
 
-		rpcClient, err := server.config.connectClient(client.CandidateID)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		conn := server.clientConnections[client.CandidateID]
 		appendEntriesReply := new(AppendEntriesReply)
-		err = rpcClient.Call("Raft.AppendEntries", args, appendEntriesReply)
+		err := conn.Call("Raft.AppendEntries", args, appendEntriesReply)
 		if err != nil {
 			log.Println("Error calling AppendEntries on: "+client.CandidateID+":", err)
 		}
@@ -232,13 +231,9 @@ func (server *Server) sendRequestVote() {
 			LastLogIndex: lastIndex,
 		}
 
-		rpcClient, err := server.config.connectClient(client.CandidateID)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		conn := server.clientConnections[client.CandidateID]
 		requestVoteReply := new(RequestVoteReply)
-		err = rpcClient.Call("Raft.RequestVote", args, requestVoteReply)
+		err := conn.Call("Raft.RequestVote", args, requestVoteReply)
 		if err != nil {
 			log.Println(err)
 		}
@@ -258,5 +253,21 @@ func (server *Server) sendRequestVote() {
 	if votesRecieved >= float32(len(server.config.Nodes))/2 {
 		log.Println("Reached leader status")
 		server.updateState(leader)
+	}
+}
+
+func (server *Server) connectClient(node NodeInfo) *rpc.Client {
+	var err error
+	client, err := rpc.DialHTTP("tcp", node.Endpoint)
+	if err != nil {
+		log.Println("Error dialing:", err)
+	}
+
+	return client
+}
+
+func (server *Server) connectClients() {
+	for _, client := range server.config.Nodes {
+		server.clientConnections[client.CandidateID] = server.connectClient(client)
 	}
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/rpc"
@@ -46,23 +45,6 @@ func LoadConfig() *Config {
 	return config
 }
 
-// TODO: is it neccessary to recreate the connection every time???
-func (config *Config) connectClient(candidateID string) (*rpc.Client, error) {
-	for _, client := range config.Nodes {
-		if candidateID == client.CandidateID {
-			var err error
-			client.Client, err = rpc.DialHTTP("tcp", client.Endpoint)
-			if err != nil {
-				log.Println("Error dialing:", err)
-			}
-
-			return client.Client, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Unable to connect to: %s", candidateID)
-}
-
 func (config *Config) getNode(candidateID string) (*NodeInfo, error) {
 	for _, node := range config.Nodes {
 		if node.CandidateID == candidateID {
@@ -83,28 +65,3 @@ func (config *Config) removeNode(candidateID string) error {
 
 	return nil
 }
-
-// func (config *Config) connectClients() {
-// 	clientCount := 0
-// 	for _, client := range server.config.Nodes {
-// 		if client.CandidateID == server.candidateID {
-// 			continue
-// 		}
-
-// 		log.Println("Connecting to", client.CandidateID)
-
-// 		if client.Client == nil {
-// 			var err error
-// 			client.Client, err = rpc.DialHTTP("tcp", client.Endpoint)
-// 			if err != nil {
-// 				log.Println("Error dialing:", err)
-// 			}
-// 			clientCount++
-// 		}
-// 	}
-
-// 	if clientCount < 2 {
-// 		log.Fatalln("Cannot run a cluster with less than 3 nodes")
-// 	}
-
-// }
